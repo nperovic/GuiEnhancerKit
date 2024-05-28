@@ -138,7 +138,7 @@ myGui.SetDarkMenu()
 ### GuiControl.SetTheme(pszSubAppName, pszSubIdList := "")
 Applies a specified theme to the window through the SetWindowTheme function from the uxtheme library.
 ```PHP
-/* This example sets dark mode edit control.*/
+  /* This example sets dark mode edit control.*/
 myEdit.SetTheme("DarkMode_Explorer")
 ```
 
