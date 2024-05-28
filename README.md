@@ -1,45 +1,41 @@
 # GuiEnhancerKit
-Elevate your AHK Gui development with extended methods and properties.
+Elevate your AHK Gui development with extended methods and properties. This library provides a set of extended methods and properties to enhance your AutoHotkey Gui development experience.
 
-# Example
+## Getting Started
 
-### Include the library in your script.
+### Including the library in your script
 ```AUTOIT
 #Requires AutoHotkey v2
 #Include <GuiEnhancerKit>
 ```
 
-### **IMPORTANT**: To ensure proper functioning of VSCode's Intelligence, annotate the variable type as GuiExt above the line where you create a new Gui object instance. Like this:
+### Using VSCode's Intelligence
 > ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/8b7942c1-5805-4c64-b955-d8aa1d782cc0)
+> ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/8decc18c-57e0-47a7-8ee7-ebef7e4845d4)
 
-```PHP
+To ensure proper functioning of VSCode's Intelligence, you can:
+1. Replace `Gui` object with `GuiExt`. (Recommended)
+```CPP
+myGui := GuiExt("-Caption +Resize")
+```
+2. Annotate the variable type as GuiExt above the line where you create a new Gui object instance.
+```js
 /** @var {GuiExt} myGui */
 myGui := Gui("-Caption +Resize")
 ```
 
-### Gui Control objects created in this way do not work with VSCode's IntelliSense. 
-> Like these: `myGui.AddText`, `myGui.AddEdit`, `myGui.AddPic`, etc.
-```PHP
-text := myGui.AddText("Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Rounded Text Control")
-```
+## Features
 
-### To get VSCode's IntelliSense works, create Gui Control objects with `Add` method: 
-> Like this: `Gui.Add('ControlType')`  
-> ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/8decc18c-57e0-47a7-8ee7-ebef7e4845d4)
+### `GuiControl.SetRounded(corner := 9)`  
+> ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/0ebff7a5-f3cf-45a3-9059-6bb62f8960f8)  
 
-```PHP
-myEdit := myGui.Add("Edit", "-WantReturn -TabStop w300 h150 -E0x200 -HScroll -VScroll +Multi +ReadOnly cwhite Background" myGui.BackColor)
-myEdit.SetFont(, "Consolas")
-```
-
-### Set the control's border style to rounded corners. The radius of the rounded corners is set to `9` in this case.
-> ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/0ebff7a5-f3cf-45a3-9059-6bb62f8960f8)
-
+This method sets the control's border style to rounded corners. The radius of the rounded corners is set to `9` in this case.  
 ```PHP
 text.SetRounded(9)
 ```
 
-### To get/ set the Gui or Gui Control's position and size.
+### GuiOrControl.X/ GuiOrControl.Y/ GuiOrControl.W/ GuiOrControl.H
+These properties allow you to get or set the Gui or Gui Control's position and size.
 ```PHP
 /* Get the current gui position. */
 myEdit.UpdatePos := ctrl => (ctrl.Value := 
@@ -70,8 +66,9 @@ Size(GuiObj, MinMax, Width, Height) {
 }
 ```
 
-### Registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Learn more](https://github.com/nperovic/GuiEnhancerKit/wiki#onmessage)
-
+### Gui.OnMessage(Msg, Callback, MaxThreads := 1)
+### GuiControl.OnMessage(Msg, Callback, AddRemove := 1)
+This method registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Learn more](https://github.com/nperovic/GuiEnhancerKit/wiki#onmessage)
 ```PHP
 WM_LBUTTONDOWN   := 0x0201
 WM_SETCURSOR     := 0x0020
@@ -82,7 +79,7 @@ myEdit.OnMessage(WM_SETCURSOR, SetCursor)
 myGui.OnMessage(WM_MOVING, (*) => myEdit.UpdatePos())
 
 /**
- * Callback function for `GuiCtrl.OnMessage()` [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
+ * Callback function for `GuiCtrl.OnMessage()`
  * @param GuiCtrlObj 
  * @param wParam 
  * @param lParam 
@@ -96,7 +93,7 @@ DragWindow(GuiCtrlObj, wParam, lParam, msg) {
 }
 
 /**
- * Callback function for `GuiCtrl.OnMessage()` [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
+ * Callback function for `GuiCtrl.OnMessage()`
  * @param GuiCtrlObj 
  * @param wParam 
  * @param lParam 
@@ -110,37 +107,45 @@ SetCursor(GuiCtrlObj, wParam, lParam, Msg) {
 }
 ```
 
-### Sets the dark mode title bar for the window if the operating system version supports it.
+### SetDarkTitle()
+This method sets the dark mode title bar for the window if the operating system version supports it.
 ```PHP
 myGui.SetDarkTitle()
 ```
 
-### Calls the `SetWindowAttribute` method to set Rounded Corners.  
+### Gui.SetWindowAttribute(dwAttribute, pvAttribute?)
+This method calls the `DwmSetWindowAttribute` function from the dwmapi library to set attributes of a window.
 > Requires Windows 11.  
 > [Learn more on MSDN](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmsetwindowattribute)  
 > ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/ed1a147e-4dea-402e-917a-028555bafb8c)
-
 ```PHP
+/* To set Rounded Corners for window. */
 myGui.SetWindowAttribute(33, 2)
 ```
 
-### To set the title bar background color to match the GUI background and remove the window border.
+### SetWindowColor(titleText?, titleBackground?, border?)
+This method sets the title bar background color to match the GUI background and removes the window border.
 ```PHP
 myGui.SetWindowColor(, myGui.BackColor, myGui.BackColor)
 ```
 
-### To set the dark mode context menus.
+### SetDarkMenu()
+This method sets the dark mode context menus.
 ```PHP
 myGui.SetDarkMenu()
 ```
 
-### Set dark mode edit control.
+### SetTheme(pszSubAppName, pszSubIdList := "")
+Applies a specified theme to the window through the SetWindowTheme function from the uxtheme library.
 ```PHP
+/* This example sets dark mode edit control.*/
 myEdit.SetTheme("DarkMode_Explorer")
 ```
 
-### Send Message to the gui or gui control
+### SendMsg(Msg, wParam := 0, lParam := 0)
+This method sends a message to the gui or gui control.
 ```PHP
 EN_KILLFOCUS := 0x0200
 myEdit.SendMsg(EN_KILLFOCUS)
 ```
+
