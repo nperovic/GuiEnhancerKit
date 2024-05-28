@@ -107,7 +107,7 @@ SetCursor(GuiCtrlObj, wParam, lParam, Msg) {
 }
 ```
 
-### SetDarkTitle()
+### Gui.SetDarkTitle()
 This method sets the dark mode title bar for the window if the operating system version supports it.
 ```PHP
 myGui.SetDarkTitle()
@@ -123,26 +123,26 @@ This method calls the `DwmSetWindowAttribute` function from the dwmapi library t
 myGui.SetWindowAttribute(33, 2)
 ```
 
-### SetWindowColor(titleText?, titleBackground?, border?)
+### Gui.SetWindowColor(titleText?, titleBackground?, border?)
 This method sets the title bar background color to match the GUI background and removes the window border.
 ```PHP
 myGui.SetWindowColor(, myGui.BackColor, myGui.BackColor)
 ```
 
-### SetDarkMenu()
+### Gui.SetDarkMenu()
 This method sets the dark mode context menus.
 ```PHP
 myGui.SetDarkMenu()
 ```
 
-### SetTheme(pszSubAppName, pszSubIdList := "")
+### GuiControl.SetTheme(pszSubAppName, pszSubIdList := "")
 Applies a specified theme to the window through the SetWindowTheme function from the uxtheme library.
 ```PHP
 /* This example sets dark mode edit control.*/
 myEdit.SetTheme("DarkMode_Explorer")
 ```
 
-### SendMsg(Msg, wParam := 0, lParam := 0)
+### GuiOrControl.SendMsg(Msg, wParam := 0, lParam := 0)
 This method sends a message to the gui or gui control.
 ```PHP
 EN_KILLFOCUS := 0x0200
