@@ -16,6 +16,85 @@
 
 class GuiExt extends Gui
 {
+    class __Struct extends Buffer
+    {
+        __New(ByteCount?, FillByte?) => super.__New(ByteCount?, FillByte?)
+        
+        Set(ptr?)
+        {
+            if !(ptr??0)
+                return
+            for p, v in ptr.OwnProps()
+                if this.HasProp(p)
+                    this.%p% := v
+        }
+    
+        PropDesc(name, ofst, type, ptr?)
+        {
+            if ((ptr??0) && IsNumber(ptr))
+                NumPut(type, NumGet(ptr, ofst, type), this, ofst)
+            this.DefineProp(name, {
+                Get: NumGet.Bind(, ofst, type),
+                Set: (p, v) => NumPut(type, v, this, ofst)
+            })
+        }
+    }
+    
+    class RECT extends GuiExt.__Struct
+    { 
+        /**
+         * The `RECT` structure defines a rectangle by the coordinates of its upper-left and lower-right corners.
+         * @param {object|integer} [objOrAddress] *Optional:* Create rect object and set values to each property. It can be object or the `ptr` address.  
+         * @example
+         * DllCall("GetWindowRect", "Ptr", WinExist("A"), "ptr", rc := GuiExt.RECT())
+         * MsgBox rc.left " " rc.top " " rc.right " " rc.bottom
+         * 
+         * @example
+         * rc := GuiExt.RECT({top: 10, bottom: 69})
+         * MsgBox "L" rc.left "/ T" rc.top "/ R" rc.right "/ B" rc.bottom ; L0/ T10/ R0/ B69
+         * 
+         * @example
+         * myGui.OnMessage(WM_NCCALCSIZE := 0x0083, NCCALCSIZE)
+         * NCCALCSIZE(guiObj, wParam, lParam, msg)
+         * {
+         *      if !wParam {
+         *          rc := GuiExt.RECT(lParam)
+         *          ToolTip "L" rc.left "/ T" rc.top "/ R" rc.right "/ B" rc.bottom
+         *      }
+         * }
+         * 
+         * @returns The Buffer object that defined the `RECT` structure.
+         * @link [Learn more on MSDN](https://learn.microsoft.com/en-us/windows/win32/api/windef/ns-windef-rect)
+         */
+        __New(objOrAddress?)
+        {
+            super.__New(16)
+            (IsSet(objOrAddress) && IsNumber(objOrAddress) && (ptr := objOrAddress))
+            (IsSet(objOrAddress) && IsObject(objOrAddress) && (objOrAddress := objOrAddress))
+            for i, prop in ["left", "top", "right", "bottom"]
+                this.PropDesc(prop, 4 * (i-1), "int",  ptr?)
+            this.Set(objOrAddress?)
+        }
+         
+        /** @prop {integer} left Specifies the x-coordinate of the upper-left corner of the rectangle. */
+        left := unset
+    
+        /** @prop {integer} top Specifies the y-coordinate of the upper-left corner of the rectangle. */
+        top := unset
+    
+        /** @prop {integer} right Specifies the x-coordinate of the lower-right corner of the rectangle. */
+        right := unset
+    
+        /** @prop {integer} bottom Specifies the y-coordinate of the lower-right corner of the rectangle. */
+        bottom := unset
+        
+        /** @prop {integer} width Rect width. */
+        width => (this.right - this.left)
+
+        /** @prop {integer} width Rect width. */
+        height => (this.bottom - this.top)
+    }
+
     static __New()
     {
         GuiExt.Control.__New(p := this.Prototype, sp := super.Prototype)
@@ -58,11 +137,123 @@ class GuiExt extends Gui
 
     __GetPos(prop) => (this.GetPos(&x, &y, &w, &h), %prop%)
 
-    __SetPos(prop, value) {
+    __SetPos(prop, value)
+    {
         SetWinDelay(-1), SetControlDelay(-1)
         %prop% := value
         try this.Move(x?, y?, w?, h?)
     }
+
+    /**
+     * To create a borderless window with customizable resizing behavior.
+     * @param {Integer} [border=6] The width of the edge of the window where the window size can be adjusted. If this value is `0`, the window will not be resizable.
+     * @param {(guiObj, x, y) => Integer} [DragWndFunc=""] A callback function used to check whether the window is currently in a drag state. If the function returns `true` and the left mouse button is held down on the `Gui` window, the effect is the same as holding down the left button on the window title bar.
+     * @param {number} [cxLeftWidth] The width of the left border that retains its size.
+     * @param {number} [cxRightWidth] The width of the right border that retains its size.
+     * @param {number} [cyTopHeight] The height of the top border that retains its size.
+     * @param {number} [cyBottomHeight] The height of the bottom border that retains its size.
+     */
+    SetBorderless(border := 6, dragWndFunc := "", cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
+    {
+        static WM_NCCALCSIZE := 0x83
+        static WM_NCHITTEST  := 0x84
+        static WM_NCACTIVATE := 0x86
+        static WM_ACTIVATE   := 0x6
+
+        this.SetWindowAttribute(3, 1)
+
+        ; Set Rounded Corner for Windows 11 
+        if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
+            this.SetWindowAttribute(33, 2)
+
+        this.OnMessage(WM_ACTIVATE, CB_ACTIVATE)
+        this.OnMessage(WM_NCACTIVATE, CB_NCACTIVATE)
+        this.OnMessage(WM_NCCALCSIZE, CB_NCCALCSIZE)
+
+        ; Make window resizable. 
+        this.OnMessage(WM_NCHITTEST, CB_NCHITTEST.Bind(dragWndFunc ? dragWndFunc.Bind(this) : 0))
+
+        ExtendFrameIntoClientArea(cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
+
+        CB_ACTIVATE(g, wParam, lParam, Msg)
+        {
+            SetWinDelay(-1), SetControlDelay(-1), WinRedraw(g)
+            if (lParam = g.hwnd && (wParam & 0xFFFF))
+                ExtendFrameIntoClientArea(cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
+        }
+
+        CB_NCCALCSIZE(g, wParam, lParam, Msg)
+        {
+            if wParam
+                return 0
+        }
+
+        CB_NCACTIVATE(g, wParam, lParam, *)
+        {
+            if !wParam
+                return true
+            if (lParam != g.hwnd) && GetKeyState("LButton", "P")
+                return false
+            SetWinDelay(-1)
+            WinRedraw(g)
+        }
+
+        /**
+         * @param {Function} HTFunc 
+         * @param {GuiExt} g 
+         * @param {integer} wParam 
+         * @param {integer} lParam 
+         * @param {integer} Msg 
+         * @returns {Integer | unset} 
+         */
+        CB_NCHITTEST(HTFunc?, g?, wParam?, lParam?, Msg?)
+        {
+            static HTLEFT       := 10, HTRIGHT       := 11
+                 , HTTOP        := 12, HTTOPLEFT     := 13
+                 , HTTOPRIGHT   := 14, HTBOTTOM      := 15
+                 , HTBOTTOMLEFT := 16, HTBOTTOMRIGHT := 17
+                 , TCAPTION     := 2
+            
+            if !(g is Gui)
+                return
+
+            CoordMode("Mouse")
+            MouseGetPos(&x, &y)
+
+            rc := g.GetWindowRect()
+            R  := (x >= rc.right - border)
+            L  := (x < rc.left + border)
+
+            if (B := (y >= rc.bottom - border))
+                return R ? HTBOTTOMRIGHT: L ? HTBOTTOMLEFT: HTBOTTOM
+
+            if (T := (y < rc.top + border))
+                return R ? HTTOPRIGHT: L ? HTTOPLEFT: HTTOP
+
+            return L ? HTLEFT: R ? HTRIGHT: (HTFunc && HTFunc(x, y) ? TCAPTION : unset)
+        }
+
+        ExtendFrameIntoClientArea(cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
+        {
+            rc := this.GetWindowRect()
+            NumPut('int', cxLeftWidth ?? rc.width,'int', cxRightWidth ?? rc.width,'int', cyTopHeight ?? rc.height,'int', cyBottomHeight ?? rc.height, margin := Buffer(16))
+            DllCall("Dwmapi\DwmExtendFrameIntoClientArea", "Ptr", this.hWnd, "Ptr", margin)
+        }
+    }
+
+    /**
+     * Retrieves the dimensions of the bounding rectangle of the specified window. The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.  
+     * [Learn more](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect)
+     * @returns {RECT} 
+     */
+    GetWindowRect() => (DllCall("GetWindowRect", "ptr", this.hwnd, "ptr", _rc := GuiExt.RECT(), "uptr"), _rc)
+
+    /**
+     * Retrieves the coordinates of a window's client area. The client coordinates specify the upper-left and lower-right corners of the client area. Because client coordinates are relative to the upper-left corner of a window's client area, the coordinates of the upper-left corner are (0,0).  
+     * [Learn more](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect)
+     * @returns {RECT} 
+     */        
+    GetClientRect() => (DllCall("GetClientRect", "ptr", this.hwnd, "ptr", _rc := GuiExt.RECT(), "uptr"), _rc)
 
     /**
      * Sets the attributes of a window. Specifically, it can set the color of the window's caption, text, and border.
@@ -175,6 +366,20 @@ class GuiExt extends Gui
          * @property {Integer} H Height
          */
         X := unset, Y := unset, W := unset, H := unset
+
+        /**
+         * Retrieves the dimensions of the bounding rectangle of the specified window. The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.  
+         * [Learn more](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect)
+         * @returns {RECT} 
+         */
+        GetWindowRect() => (DllCall("GetWindowRect", "ptr", this.hwnd, "ptr", _rc := GuiExt.RECT(), "uptr"), _rc)
+
+        /**
+         * Retrieves the coordinates of a window's client area. The client coordinates specify the upper-left and lower-right corners of the client area. Because client coordinates are relative to the upper-left corner of a window's client area, the coordinates of the upper-left corner are (0,0).  
+         * [Learn more](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect)
+         * @returns {RECT} 
+         */        
+        GetClientRect() => (DllCall("GetClientRect", "ptr", this.hwnd, "ptr", _rc := GuiExt.RECT(), "uptr"), _rc)
 
         /**
          * Registers a function or method to be called whenever the GuiControl receives the specified message.
@@ -463,8 +668,9 @@ class GuiExt extends Gui
     ;;}
 }
 
-
 ;;{ Examples
+
+
 
 WM_LBUTTONDOWN   := 0x0201
 WM_SETCURSOR     := 0x0020
@@ -473,10 +679,6 @@ EN_KILLFOCUS     := 0x0200
 WM_SIZING        := 0x0214
 WM_MOVE          := 0x0003
 WM_MOVING        := 0x0216
-
-; To ensure proper functioning of VSCode's Intelligence, you can:
-; 
-; 2. Replace `Gui` object with `GuiExt`. (Recommended)
 
 /**
  * ### To ensure proper functioning of VSCode's Intelligence, you can:  
@@ -496,8 +698,11 @@ text := myGui.AddText("Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Rounde
 ; Set Rounded Control
 text.SetRounded()
  
-myEdit := myGui.Add("Edit", "-WantReturn -TabStop w300 h150 -E0x200 -HScroll -VScroll +Multi +ReadOnly cwhite Background" myGui.BackColor)
+myEdit := myGui.Add("Edit", "vEdit -WantReturn -TabStop w300 h150 -E0x200 -HScroll -VScroll +Multi +ReadOnly cwhite Background" myGui.BackColor)
 myEdit.SetFont(, "Consolas")
+
+; Set Edit Control theme
+myEdit.SetTheme("DarkMode_Explorer")
 
 myEdit.UpdatePos := (ctrl => (ctrl.Value := 
 (
@@ -520,23 +725,36 @@ myGui.OnMessage(WM_MOVING, (*) => myEdit.UpdatePos())
 ; Set Dark Titlebar
 myGui.SetDarkTitle()
 
-; Set Rounded Window (win 11+)
-myGui.SetWindowAttribute(33, 2)
-
-; Set Titlebar background color the same as the gui background and remove the window border
-myGui.SetWindowColor(, myGui.BackColor, myGui.BackColor)
-
 ; Set Dark ContextMenu
 myGui.SetDarkMenu()
 
-; Set Edit Control theme
-myEdit.SetTheme("DarkMode_Explorer")
+if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
+{
+    ; Set Rounded Window (Requires win 11)
+    myGui.SetWindowAttribute(33, 2)
+
+    ; Remove the window border. (Requires win 11)
+    myGui.SetWindowColor(, , 0xFFFFFFFE)
+
+    ; Set Mica (Alt) background. (Requires win 11 build 22600)
+    ; [Learn more](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt)
+    if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
+        myGui.SetWindowAttribute(38, 4)
+}
+
+; Set the borderless 
+myGui.SetBorderless(6, (g, x, y) {
+    if !g["Edit"]
+        return 
+    WinGetPos(, &eY,,, g["Edit"])
+    return y <= eY
+}, 500, 500, 500, 500)
 
 myGui.Show("w300 AutoSize")
 myGui.Opt("MinSize")
 
 ; Send Message to the gui or gui control
-; myEdit.SendMsg(EN_KILLFOCUS)
+myEdit.SendMsg(EN_KILLFOCUS)
 
 /**
  * @param {GuiExt|Gui} GuiObj 
