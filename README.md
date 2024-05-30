@@ -34,7 +34,7 @@ This method sets the control's border style to rounded corners. The radius of th
 text.SetRounded(9)
 ```
 
-### GuiOrControl.X/ GuiOrControl.Y/ GuiOrControl.W/ GuiOrControl.H
+### `GuiOrControl.X`/ `GuiOrControl.Y`/ `GuiOrControl.W`/ `GuiOrControl.H`
 These properties allow you to get or set the Gui or Gui Control's position and size.
 ```PHP
 /* Get the current gui position. */
@@ -66,8 +66,8 @@ Size(GuiObj, MinMax, Width, Height) {
 }
 ```
 
-### Gui.OnMessage(Msg, Callback, MaxThreads := 1)
-### GuiControl.OnMessage(Msg, Callback, AddRemove := 1)
+### `Gui.OnMessage(Msg, Callback, MaxThreads := 1)`  
+### `GuiControl.OnMessage(Msg, Callback, AddRemove := 1)`
 This method registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Learn more](https://github.com/nperovic/GuiEnhancerKit/wiki#onmessage)
 ```PHP
 WM_LBUTTONDOWN   := 0x0201
@@ -107,13 +107,13 @@ SetCursor(GuiCtrlObj, wParam, lParam, Msg) {
 }
 ```
 
-### Gui.SetDarkTitle()
+### `Gui.SetDarkTitle()`
 This method sets the dark mode title bar for the window if the operating system version supports it.
 ```PHP
 myGui.SetDarkTitle()
 ```
 
-### Gui.SetWindowAttribute(dwAttribute, pvAttribute?)
+### `Gui.SetWindowAttribute(dwAttribute, pvAttribute?)`
 This method calls the `DwmSetWindowAttribute` function from the dwmapi library to set attributes of a window.
 > Requires Windows 11.  
 > [Learn more on MSDN](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmsetwindowattribute)  
@@ -123,33 +123,33 @@ This method calls the `DwmSetWindowAttribute` function from the dwmapi library t
 myGui.SetWindowAttribute(33, 2)
 ```
 
-### Gui.SetWindowColor(titleText?, titleBackground?, border?)
+### `Gui.SetWindowColor(titleText?, titleBackground?, border?)`
 This method sets the title bar background color to match the GUI background and removes the window border.
 ```PHP
 myGui.SetWindowColor(, myGui.BackColor, myGui.BackColor)
 ```
 
-### Gui.SetDarkMenu()
+### `Gui.SetDarkMenu()`
 This method sets the dark mode context menus.
 ```PHP
 myGui.SetDarkMenu()
 ```
 
-### GuiControl.SetTheme(pszSubAppName, pszSubIdList := "")
+### `GuiControl.SetTheme(pszSubAppName, pszSubIdList := "")`
 Applies a specified theme to the window through the SetWindowTheme function from the uxtheme library.
 ```PHP
 /* This example sets dark mode edit control.*/
 myEdit.SetTheme("DarkMode_Explorer")
 ```
 
-### GuiOrControl.SendMsg(Msg, wParam := 0, lParam := 0)
+### `GuiOrControl.SendMsg(Msg, wParam := 0, lParam := 0)`
 This method sends a message to the gui or gui control.
 ```PHP
 EN_KILLFOCUS := 0x0200
 myEdit.SendMsg(EN_KILLFOCUS)
 ```
 
-### GuiExt.RECT(objOrAddress?)
+### `GuiExt.RECT(objOrAddress?)`
 Create a `RECT` structure object that defines a rectangle by the coordinates of its upper-left and lower-right corners. This can be used directly with `DllCall`.
 ```php
 /* Get RECT object from DllCall */
@@ -171,21 +171,21 @@ NCCALCSIZE(guiObj, wParam, lParam, msg) {
 }
 ```
 
-### GuiOrControl.GetWindowRect()
+### `GuiOrControl.GetWindowRect()`
 Retrieves the dimensions of the bounding rectangle of the specified window. The dimensions are given in **screen coordinates** that are relative to the upper-left corner of the screen. [Learn more on MSDN](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
 ```py
 rc := myGui.GetWindowRect()
 MsgBox(rc.left " " rc.top " " rc.right " " rc.bottom " " rc.Width " " rc.Height)
 ```
 
-### GuiOrControl.GetClientRect()
+### `GuiOrControl.GetClientRect()`
 Retrieves the coordinates of a window's **client area**. The client coordinates specify the upper-left and lower-right corners of the client area. Because client coordinates are relative to the upper-left corner of a window's client area, the coordinates of the upper-left corner are `(0,0)`. 
 ```py
 rc := myEdit.GetClientRect()
 MsgBox(rc.left " " rc.top " " rc.right " " rc.bottom " " rc.Width " " rc.Height)
 ```
 
-### Gui.SetBorderless(border := 6, dragWndFunc := "", cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
+### `Gui.SetBorderless(border := 6, dragWndFunc := "", cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)`
 To create a borderless window with customizable resizing behavior.
 Creating a borderless resizable window with [Mica (Alt)](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt) effect. background.   
 > ![20240530-0455-52 6409216](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/6f3f6474-2218-4f74-86ad-e227c49f8031)
