@@ -138,7 +138,7 @@ myGui.SetDarkMenu()
 ### GuiControl.SetTheme(pszSubAppName, pszSubIdList := "")
 Applies a specified theme to the window through the SetWindowTheme function from the uxtheme library.
 ```PHP
-  /* This example sets dark mode edit control.*/
+/* This example sets dark mode edit control.*/
 myEdit.SetTheme("DarkMode_Explorer")
 ```
 
@@ -147,5 +147,73 @@ This method sends a message to the gui or gui control.
 ```PHP
 EN_KILLFOCUS := 0x0200
 myEdit.SendMsg(EN_KILLFOCUS)
+```
+
+### GuiExt.RECT(objOrAddress?)
+Create a `RECT` structure object that defines a rectangle by the coordinates of its upper-left and lower-right corners. This can be used directly with `DllCall`.
+```php
+/* Get RECT object from DllCall */
+DllCall("GetWindowRect", "Ptr", WinExist("A"), "ptr", rc := GuiExt.RECT())
+MsgBox(Format("{} {} {} {} {} {}", rc.left, rc.top, rc.right, rc.bottom, rc.Width, rc.Height))
+
+/* Create a RECT object with values preset. */
+rc := GuiExt.RECT({top: 10, bottom: 69})
+MsgBox(Format("L{}/ T{}/ R{}/ B{}", rc.left, rc.top, rc.right, rc.bottom))
+
+myGui.OnMessage(WM_NCCALCSIZE := 0x0083, NCCALCSIZE)
+
+NCCALCSIZE(guiObj, wParam, lParam, msg) {
+    if !wParam {
+        /* Get the structure object from pointer address. */
+        rc := GuiExt.RECT(lParam)
+        ToolTip(Format("L{}/ T{}/ R{}/ B{}", rc.left, rc.top, rc.right, rc.bottom))
+    }
+}
+```
+
+### GuiOrControl.GetWindowRect()
+Retrieves the dimensions of the bounding rectangle of the specified window. The dimensions are given in **screen coordinates** that are relative to the upper-left corner of the screen. [Learn more on MSDN](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
+```py
+rc := myGui.GetWindowRect()
+MsgBox(rc.left " " rc.top " " rc.right " " rc.bottom " " rc.Width " " rc.Height)
+```
+
+### GuiOrControl.GetClientRect()
+Retrieves the coordinates of a window's **client area**. The client coordinates specify the upper-left and lower-right corners of the client area. Because client coordinates are relative to the upper-left corner of a window's client area, the coordinates of the upper-left corner are `(0,0)`. 
+```py
+rc := myEdit.GetClientRect()
+MsgBox(rc.left " " rc.top " " rc.right " " rc.bottom " " rc.Width " " rc.Height)
+```
+
+### Gui.SetBorderless(border := 6, dragWndFunc := "", cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
+To create a borderless window with customizable resizing behavior.
+Creating a borderless resizable window with [Mica (Alt)](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt) effect. background.   
+> ![20240530-0455-52 6409216](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/6f3f6474-2218-4f74-86ad-e227c49f8031)
+
+```php
+myGui := GuiExt("-Caption +Resize")
+myGui.SetFont("cWhite s16", "Segoe UI")
+myGui.SetDarkTitle()
+myGui.SetDarkMenu()
+myGui.OnEvent('Size', Size)
+
+myGui.BackColor := 0x202020
+
+text := myGui.Add("Text", "vTitlebar Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Titlebar Area")
+text.SetRounded()
+
+/* Set Mica (Alt) background. (Supported starting with Windows 11 Build 22000.) */
+if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
+    myGui.SetWindowAttribute(38, 4)
+
+myGui.SetBorderless(6, (g, x, y) => (y <= g['Titlebar'].GetWindowRect().bottom), 500, 500, 500, 500)
+
+myGui.Show("h500")
+
+Size(g, minmax, width, height) {
+    SetControlDelay(-1)
+    /** Set titlebar's width to fix the gui. */
+    g["Titlebar"].W := (width - (g.MarginX*2))
+}
 ```
 

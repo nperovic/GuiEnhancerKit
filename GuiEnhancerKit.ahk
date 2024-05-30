@@ -1,11 +1,10 @@
 /************************************************************************
  * @description Elevate your AHK Gui development with extended methods and properties.  
- *
  * @file GuiEnhancerKit.ahk
  * @author Nikola Perovic
  * @link https://github.com/nperovic/GuiEnhancerKit
- * @date 2024/05/28
- * @version 1.0.2
+ * @date 2024/05/30
+ * @version 1.0.3
  ***********************************************************************/
 
 #Requires AutoHotkey v2.0.15
@@ -122,7 +121,7 @@ class GuiExt extends Gui
      * @prop {Integer} W Width
      * @prop {Integer} H Height
      */
-    X := unset, Y := unset, W := unset, H := unset
+    X := Y := W := H := 0
 
     /**
 	 * Create controls such as text, buttons or checkboxes, and return a GuiControl object.
@@ -140,7 +139,7 @@ class GuiExt extends Gui
     __SetPos(prop, value)
     {
         SetWinDelay(-1), SetControlDelay(-1)
-        %prop% := value
+        try %prop% := value
         try this.Move(x?, y?, w?, h?)
     }
 
@@ -243,7 +242,7 @@ class GuiExt extends Gui
 
     /**
      * Retrieves the dimensions of the bounding rectangle of the specified window. The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.  
-     * [Learn more](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect)
+     * [Learn more](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
      * @returns {RECT} 
      */
     GetWindowRect() => (DllCall("GetWindowRect", "ptr", this.hwnd, "ptr", _rc := GuiExt.RECT(), "uptr"), _rc)
@@ -455,12 +454,20 @@ class GuiExt extends Gui
          */
         SetRounded(corner := 9)
         {
-            this.Opt("+0x4000000")
-            DllCall("GetClientRect", "ptr", this.Hwnd, "ptr", rc := Buffer(16, 0), "int")
-            rcRgn := DllCall('Gdi32\CreateRoundRectRgn', 'int', NumGet(rc, 0, "int") + 3, 'int', NumGet(rc, 4, "int") + 3, 'int', NumGet(rc, 8, "int") - 3, 'int', NumGet(rc, 12, "int") - 3, 'int', corner, 'int', corner, 'ptr')
-            DllCall("User32\SetWindowRgn", "ptr", this.hWnd, "ptr", rcRgn, "int", 1, "int")
-            this.Redraw()
-            DllCall('Gdi32\DeleteObject', 'ptr', rcRgn, 'int')
+            static WM_SIZE := 0x0005
+            
+            SIZING(this)
+            this.OnMessage(WM_SIZE, SIZING)
+
+            SIZING(ctrl, wParam?, lParam?, msg?)
+            {
+                ctrl.Opt("+0x4000000")
+                rc    := ctrl.GetClientRect()
+                rcRgn := DllCall('Gdi32\CreateRoundRectRgn', 'int', rc.left + 3, 'int', rc.top + 3, 'int', rc.right - 3, 'int', rc.bottom - 3, 'int', corner, 'int', corner, 'ptr')
+                DllCall("SetWindowRgn", "ptr", ctrl.hWnd, "ptr", rcRgn, "int", 1, "int")
+                ctrl.Redraw()
+                DllCall('Gdi32\DeleteObject', 'ptr', rcRgn, 'int')
+            }
         }
 
         /**
@@ -485,7 +492,7 @@ class GuiExt extends Gui
      * @param Text The text  
      * @returns {GuiExt.Control|GuiExt.Text}
      */
-    AddText(Options?, Text?) => this.AddText(Options?, Text?)
+    AddText(Options?, Text?) => super.AddText(Options?, Text?)
 
     /**
      * Create controls such as text, buttons or checkboxes, and return a GuiControl object.
@@ -670,135 +677,170 @@ class GuiExt extends Gui
 
 ;;{ Examples
 
-
-
-WM_LBUTTONDOWN   := 0x0201
-WM_SETCURSOR     := 0x0020
-WM_NCLBUTTONDOWN := 0x00A1
-EN_KILLFOCUS     := 0x0200
-WM_SIZING        := 0x0214
-WM_MOVE          := 0x0003
-WM_MOVING        := 0x0216
-
-/**
- * ### To ensure proper functioning of VSCode's Intelligence, you can:  
- * 1. Replace `Gui` object with `GuiExt`. (Recommended)
- * 2. Annotate the variable type as GuiExt above the line where you create a new Gui object instance.(Like the example below:)
- * @var {GuiExt} myGui
- * */
-myGui := Gui("-Caption +Resize")
-; myGui := GuiExt("-Caption +Resize")
-
-myGui.SetFont("cWhite s16", "Segoe UI")
-myGui.BackColor := 0x202020
-
-; Gui Control objects created in this way do not work with VSCode's IntelliSense. Create an Edit control as shown below.
-text := myGui.AddText("Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Rounded Text Control")
-
-; Set Rounded Control
-text.SetRounded()
- 
-myEdit := myGui.Add("Edit", "vEdit -WantReturn -TabStop w300 h150 -E0x200 -HScroll -VScroll +Multi +ReadOnly cwhite Background" myGui.BackColor)
-myEdit.SetFont(, "Consolas")
-
-; Set Edit Control theme
-myEdit.SetTheme("DarkMode_Explorer")
-
-myEdit.UpdatePos := (ctrl => (ctrl.Value := 
-(
-    "x: " myGui.X "
-    y: " myGui.Y "
-    w: " myGui.W "
-    h: " myGui.H
-)))
-
-myEdit.OnEvent("Focus", (gCtrl, *) => (DllCall("User32\HideCaret", "ptr", gCtrl.hWnd, "int"), gCtrl.SendMsg(EN_KILLFOCUS)))
-
-myGui.OnEvent("Size", Size)
-
-; Registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
-myGui.OnMessage(WM_LBUTTONDOWN, DragWindow)
-myEdit.OnMessage(WM_SETCURSOR, SetCursor)
-
-myGui.OnMessage(WM_MOVING, (*) => myEdit.UpdatePos())
-
-; Set Dark Titlebar
-myGui.SetDarkTitle()
-
-; Set Dark ContextMenu
-myGui.SetDarkMenu()
-
-if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
-{
-    ; Set Rounded Window (Requires win 11)
-    myGui.SetWindowAttribute(33, 2)
-
-    ; Remove the window border. (Requires win 11)
-    myGui.SetWindowColor(, , 0xFFFFFFFE)
-
-    ; Set Mica (Alt) background. (Requires win 11 build 22600)
-    ; [Learn more](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt)
-    if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
-        myGui.SetWindowAttribute(38, 4)
-}
-
-; Set the borderless 
-myGui.SetBorderless(6, (g, x, y) {
-    if !g["Edit"]
-        return 
-    WinGetPos(, &eY,,, g["Edit"])
-    return y <= eY
-}, 500, 500, 500, 500)
-
-myGui.Show("w300 AutoSize")
-myGui.Opt("MinSize")
-
-; Send Message to the gui or gui control
-myEdit.SendMsg(EN_KILLFOCUS)
-
-/**
- * @param {GuiExt|Gui} GuiObj 
- * @param {Integer} MinMax 
- * @param {Integer} Width 
- * @param {Integer} Height 
- */
-Size(GuiObj, MinMax, Width, Height) {
-    Critical("Off")
-    SetWinDelay(-1), SetControlDelay(-1)
-
-    ; Moving Controls
-    myEdit.W := text.W := Width - (GuiObj.MarginX*2)
-    myEdit.H := Height - (GuiObj.MarginY*2)
-    text.SetRounded()
-    myEdit.UpdatePos()
-}
-
-/**
- * Callback function for `GuiCtrl.OnMessage()` [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
- * @param GuiCtrlObj 
- * @param wParam 
- * @param lParam 
- * @param msg 
- * @returns {Integer} 
- */
-DragWindow(GuiCtrlObj, wParam, lParam, msg) {
-    static WM_NCLBUTTONDOWN := 0x00A1
-    PostMessage(WM_NCLBUTTONDOWN, 2,,, GuiCtrlObj is Gui.Control ? GuiCtrlObj.Gui : GuiCtrlObj)
-    return 0
-}
-
-/**
- * Callback function for `GuiCtrl.OnMessage()` [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
- * @param GuiCtrlObj 
- * @param wParam 
- * @param lParam 
- * @param msg 
- * @returns {Integer} 
- */
-SetCursor(GuiCtrlObj, wParam, lParam, Msg) {
-    static hCursor := DllCall("LoadCursor", "ptr", 0, "ptr", 32512)
-    DllCall("SetCursor", "ptr", hCursor, "ptr")
-    return 0
-}
+Example_GuiExt()
+Example_SetBorderless()
 
 ;;}
+
+Example_GuiExt()
+{
+    static WM_LBUTTONDOWN   := 0x0201
+    static WM_SETCURSOR     := 0x0020
+    static WM_NCLBUTTONDOWN := 0x00A1
+    static EN_KILLFOCUS     := 0x0200
+    static WM_SIZING        := 0x0214
+    static WM_MOVE          := 0x0003
+    static WM_MOVING        := 0x0216
+    
+    /**
+     * ### To ensure proper functioning of VSCode's Intelligence, you can:  
+     * 1. Replace `Gui` object with `GuiExt`. (Recommended)
+     * 2. Annotate the variable type as GuiExt above the line where you create a new Gui object instance.(Like the example below:)
+     * @var {GuiExt} myGui
+     * */
+    myGui := Gui("-Caption +Resize")
+    ; myGui := GuiExt("-Caption +Resize")
+    
+    myGui.SetFont("cWhite s16", "Segoe UI")
+    myGui.BackColor := 0x202020
+    
+    ; Gui Control objects created in this way do not work with VSCode's IntelliSense. Create an Edit control as shown below.
+    text := myGui.AddText("Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Rounded Text Control")
+    
+    ; Set Rounded Control
+    text.SetRounded()
+     
+    myEdit := myGui.Add("Edit", "vEdit -WantReturn -TabStop w300 h150 -E0x200 -HScroll -VScroll +Multi +ReadOnly cwhite Background" myGui.BackColor)
+    myEdit.SetFont(, "Consolas")
+    
+    ; Set Edit Control theme
+    myEdit.SetTheme("DarkMode_Explorer")
+    
+    myEdit.UpdatePos := (ctrl => (ctrl.Value := 
+    (
+        "x: " myGui.X "
+        y: " myGui.Y "
+        w: " myGui.W "
+        h: " myGui.H
+    )))
+    
+    myEdit.OnEvent("Focus", (gCtrl, *) => (DllCall("User32\HideCaret", "ptr", gCtrl.hWnd, "int"), gCtrl.SendMsg(EN_KILLFOCUS)))
+    
+    myGui.OnEvent("Size", Size)
+    
+    ; Registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
+    myGui.OnMessage(WM_LBUTTONDOWN, DragWindow)
+    myEdit.OnMessage(WM_SETCURSOR, SetCursor)
+    myGui.OnMessage(WM_MOVING, (*) => myEdit.UpdatePos())
+    
+    ; Set Dark Titlebar
+    myGui.SetDarkTitle()
+    
+    ; Set Dark ContextMenu
+    myGui.SetDarkMenu()
+    
+    if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
+    {
+        ; Set Rounded Window (Requires win 11)
+        myGui.SetWindowAttribute(33, 2)
+    
+        ; Remove the window border. (Requires win 11)
+        myGui.SetWindowColor(, , -1)
+    
+        ; Set Mica (Alt) background. (Requires win 11 build 22600)
+        ; [Learn more](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt)
+        if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
+            myGui.SetWindowAttribute(38, 4)
+    }
+    
+    ; Set the borderless 
+    myGui.SetBorderless(6, BorderlessCallback, 500, 500, 500, 500)
+    
+    myGui.Show("w300 AutoSize")
+    myGui.Opt("MinSize")
+
+    WinRedraw(myGui)
+    
+    ; Send Message to the gui or gui control
+    myEdit.SendMsg(EN_KILLFOCUS)
+    
+    BorderlessCallback(g, x, y) {
+        if !g["Edit"]
+            return 
+        WinGetPos(, &eY,,, g["Edit"])
+        return y <= eY
+    }
+    
+    /**
+     * @param {GuiExt|Gui} GuiObj 
+     * @param {Integer} MinMax 
+     * @param {Integer} Width 
+     * @param {Integer} Height 
+     */
+    Size(GuiObj, MinMax, Width, Height)
+    {
+        Critical("Off")
+        SetWinDelay(-1), SetControlDelay(-1)
+    
+        ; Moving Controls
+        myEdit.W := text.W := Width - (GuiObj.MarginX*2)
+        myEdit.H := Height - (GuiObj.MarginY*2)
+        myEdit.UpdatePos()
+    }
+    
+    /**
+     * Callback function for `GuiCtrl.OnMessage()` [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
+     * @param GuiCtrlObj 
+     * @param wParam 
+     * @param lParam 
+     * @param msg 
+     * @returns {Integer} 
+     */
+    DragWindow(GuiCtrlObj, wParam, lParam, msg) {
+        static WM_NCLBUTTONDOWN := 0x00A1
+        PostMessage(WM_NCLBUTTONDOWN, 2,,, GuiCtrlObj is Gui.Control ? GuiCtrlObj.Gui : GuiCtrlObj)
+        return 0
+    }
+    
+    /**
+     * Callback function for `GuiCtrl.OnMessage()` [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
+     * @param GuiCtrlObj 
+     * @param wParam 
+     * @param lParam 
+     * @param msg 
+     * @returns {Integer} 
+     */
+    SetCursor(GuiCtrlObj, wParam, lParam, Msg) {
+        static hCursor := DllCall("LoadCursor", "ptr", 0, "ptr", 32512)
+        DllCall("SetCursor", "ptr", hCursor, "ptr")
+        return 0
+    }
+}
+
+Example_SetBorderless()
+{
+    myGui := GuiExt("-Caption +Resize")
+    myGui.SetFont("cWhite s16", "Segoe UI")
+    myGui.SetDarkTitle()
+    myGui.SetDarkMenu()
+
+    myGui.BackColor := 0x202020
+    text := myGui.Add("Text", "vTitlebar Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Titlebar Area")
+    text.SetRounded()
+    myGui.OnEvent('Size', Size)
+
+    /* Set Mica (Alt) background. (Supported starting with Windows 11 Build 22000.) */
+    if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
+        myGui.SetWindowAttribute(38, 4)
+
+    myGui.SetBorderless(6, (g, x, y) => (y <= g['Titlebar'].GetWindowRect().bottom), 500, 500, 500, 500)
+
+    myGui.Show("h500")
+
+    Size(g, minmax, width, height)
+    {
+        SetControlDelay(-1)
+        /** Set titlebar's width to fix the gui. */
+        g["Titlebar"].W := (width - (g.MarginX*2))
+    }
+}
