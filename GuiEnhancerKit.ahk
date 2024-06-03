@@ -505,19 +505,25 @@ class GuiExt extends Gui
      * @param Text The text in the Edit  
      * @returns {GuiExt.Control|GuiExt.Edit|Gui.Edit}
      */
-    AddEdit(Options?, Text?) => this.AddEdit(Options?, Text?)
+    AddEdit(Options?, Text?) => super.AddEdit(Options?, Text?)
 
     /**
      * Create UpDown control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.UpDown|Gui.UpDown}
      */
-    AddUpDown(Options?, Text?) => this.AddUpDown(Options?, Text?)
+    AddUpDown(Options?, Text?) => super.AddUpDown(Options?, Text?)
 
     /**
      * Create Picture control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Picture|Gui.Picture}
      */
-    AddPicture(Options?, FileName?) => this.AddPicture(Options?, FileName?)
+    AddPicture(Options?, FileName?) => super.AddPicture(Options?, FileName?)
+
+    /**
+     * Create Picture control and return a GuiControl object.
+     * @returns {GuiExt.Control|GuiExt.Picture|Gui.Picture}
+     */
+    AddPic(Options?, FileName?) => super.AddPicture(Options?, FileName?)
 
     /**
      * Adds a Button control and returns a GuiControl object.
@@ -528,7 +534,7 @@ class GuiExt extends Gui
      * @param Text The text of the button  
      * @returns {GuiEx.Control}
      */
-    AddButton(Options?, Text?) => this.AddButton(Options?, Text?)
+    AddButton(Options?, Text?) => super.AddButton(Options?, Text?)
 
     /**
      * Create Checkbox and return a GuiControl object.
@@ -545,7 +551,7 @@ class GuiExt extends Gui
      * @param Text The text of the Checkbox  
      * @returns {GuiExt.Control|GuiExt.Checkbox|Gui.Checkbox}
      */
-    AddCheckbox(Options?, Text?) => this.AddCheckbox(Options?, Text?)
+    AddCheckbox(Options?, Text?) => super.AddCheckbox(Options?, Text?)
 
     /**
      * Create Radio control and return a GuiControl object.
@@ -562,122 +568,129 @@ class GuiExt extends Gui
      * @param Text The text of the Checkbox  
      * @returns {GuiExt.Control|GuiExt.Radio|Gui.Radio}
      */
-    AddRadio(Options?, Text?) => this.AddRadio(Options?, Text?)
+    AddRadio(Options?, Text?) => super.AddRadio(Options?, Text?)
 
     /**
      * Create DropDownList control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.DropDownList|Gui.DropDownList}
      */
-    AddDropDownList(Options?, Items?) => this.AddDropDownList(Options?, Items?)
+    AddDropDownList(Options?, Items?) => super.AddDropDownList(Options?, Items?)
+
+    /**
+     * Create DropDownList control and return a GuiControl object.
+     * @returns {GuiExt.Control|GuiExt.DropDownList|Gui.DropDownList}
+     */
+    AddDDL(Options?, Items?) => super.AddDropDownList(Options?, Items?)
+
 
     /**
      * Create ComboBox control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.ComboBox|Gui.ComboBox}
      */
-    AddComboBox(Options?, Items?) => this.AddComboBox(Options?, Items?)
+    AddComboBox(Options?, Items?) => super.AddComboBox(Options?, Items?)
 
     /**
      * Create ListBox control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.ListBox|Gui.ListBox}
      */
-    AddListBox(Options?, Items?) => this.AddListBox(Options?, Items?)
+    AddListBox(Options?, Items?) => super.AddListBox(Options?, Items?)
 
     /**
      * Create ListView control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.ListView|Gui.ListView}
      */
-    AddListView(Options?, Titles?) => this.AddListView(Options?, Titles?)
+    AddListView(Options?, Titles?) => super.AddListView(Options?, Titles?)
 
     /**
      * Create TreeView control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.TreeView|Gui.TreeView}
      */
-    AddTreeView(Options?, Text?) => this.AddTreeView(Options?, Text?)
+    AddTreeView(Options?, Text?) => super.AddTreeView(Options?, Text?)
 
     /**
      * Create Link control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Link|Gui.Link}
      */
-    AddLink(Options?, Text?) => this.AddLink(Options?, Text?)
+    AddLink(Options?, Text?) => super.AddLink(Options?, Text?)
 
     /**
      * Create Hotkey control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Hotkey|Gui.Hotkey}
      */
-    AddHotkey(Options?, Text?) => this.AddHotkey(Options?, Text?)
+    AddHotkey(Options?, Text?) => super.AddHotkey(Options?, Text?)
 
     /**
      * Create DateTime control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.DateTime|Gui.DateTime}
      */
-    AddDateTime(Options?, DateTime?) => this.AddDateTime(Options?, DateTime?)
+    AddDateTime(Options?, DateTime?) => super.AddDateTime(Options?, DateTime?)
 
     /**
      * Create MonthCal control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.MonthCal|Gui.MonthCal}
      */
-    AddMonthCal(Options?, YYYYMMDD?) => this.AddMonthCal(Options?, YYYYMMDD?)
+    AddMonthCal(Options?, YYYYMMDD?) => super.AddMonthCal(Options?, YYYYMMDD?)
 
     /**
      * Create Slider control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Slider|Gui.Slider}
      */
-    AddSlider(Options?, Value?) => this.AddSlider(Options?, Value?)
+    AddSlider(Options?, Value?) => super.AddSlider(Options?, Value?)
 
     /**
      * Create Progress control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Progress|Gui.Progress}
      */
-    AddProgress(Options?, Value?) => this.AddProgress(Options?, Value?)
+    AddProgress(Options?, Value?) => super.AddProgress(Options?, Value?)
 
     /**
      * Create GroupBox control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.GroupBox|Gui.GroupBox}
      */
-    AddGroupBox(Options?, Text?) => this.AddGroupBox(Options?, Text?)
+    AddGroupBox(Options?, Text?) => super.AddGroupBox(Options?, Text?)
 
     /**
      * Create Tab control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Tab|Gui.Tab}
      */
-    AddTab(Options?, Pages?) => this.AddTab(Options?, Pages?)
+    AddTab(Options?, Pages?) => super.AddTab(Options?, Pages?)
 
     /**
      * Create Tab2 control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Tab2|Gui.Tab2}
      */
-    AddTab2(Options?, Pages?) => this.AddTab2(Options?, Pages?)
+    AddTab2(Options?, Pages?) => super.AddTab2(Options?, Pages?)
 
     /**
      * Create Tab3 control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Tab3|Gui.Tab3}
      */
-    AddTab3(Options?, Pages?) => this.AddTab3(Options?, Pages?)
+    AddTab3(Options?, Pages?) => super.AddTab3(Options?, Pages?)
 
     /**
      * Create StatusBar control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.StatusBar|Gui.StatusBar}
      */
-    AddStatusBar(Options?, Text?) => this.AddStatusBar(Options?, Text?)
+    AddStatusBar(Options?, Text?) => super.AddStatusBar(Options?, Text?)
 
     /**
      * Create ActiveX control and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.ActiveX|Gui.ActiveX}
      */
-    AddActiveX(Options?, Component?) => this.AddActiveX(Options?, Component?)
+    AddActiveX(Options?, Component?) => super.AddActiveX(Options?, Component?)
 
     /**
      * Create Custom controls and return a GuiControl object.
      * @returns {GuiExt.Control|GuiExt.Custom|Gui.Custom}
      */
-    AddCustom(Win32Class?, Text?) => this.AddCustom(Win32Class?, Text?)
+    AddCustom(Win32Class?, Text?) => super.AddCustom(Win32Class?, Text?)
 
     ;;}
 }
 
 ;;{ Examples
 
-Example_GuiExt()
+; Example_GuiExt()
 Example_SetBorderless()
 
 ;;}
