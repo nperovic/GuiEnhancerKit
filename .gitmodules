@@ -1,0 +1,3 @@
+[submodule "ColorButton.ahk"]
+    path = ColorButton.ahk
+    url = https://github.com/nperovic/ColorButton.ahk.git
