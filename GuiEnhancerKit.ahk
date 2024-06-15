@@ -348,8 +348,9 @@ class GuiExt extends Gui
 
     class Control extends Gui.Control
     {
-        static __New(p := this.Prototype, sp := super.Prototype) 
+        static __New(p := this.Prototype, sp?) 
         {
+            sp := sp ?? super.Prototype
             for prop in p.OwnProps() 
                 if (!sp.HasMethod(prop) && !InStr(prop, "__")) 
                     sp.DefineProp(prop, p.GetOwnPropDesc(prop))
@@ -429,13 +430,16 @@ class GuiExt extends Gui
 
             RemoveWindowSubclass(*)
             {
+                DetectHiddenWindows true
+                
                 for hwnd, cb in SubClasses.Clone() {
-                    try {
+                    try if WinExist(hwnd) {
                         DllCall("RemoveWindowSubclass", "Ptr", hWnd, "Ptr", cb, "Ptr", hWnd)
                         CallbackFree(cb)
+                    }
                         SubClasses.Delete(hwnd)
                     }
-                }
+                OnExit(RemoveWindowSubclass, 0)
             }
         }
 
