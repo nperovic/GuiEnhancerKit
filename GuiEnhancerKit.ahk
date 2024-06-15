@@ -272,7 +272,7 @@ class GuiExt extends Gui
         static DWMWA_TEXT_COLOR    := 36
         static SetClrMap           := Map(DWMWA_BORDER_COLOR, "border", DWMWA_CAPTION_COLOR, "titleBackground", DWMWA_TEXT_COLOR, "titleText")
         
-        if (VerCompare(A_OSVersion, "10.0.22200") < 0)
+        if (VerCompare(A_OSVersion, "10.0.22200") < 0) 
             throw OSError("This is supported starting with Windows 11 Build 22000.")
 
         for attr, var in SetClrMap
@@ -348,10 +348,10 @@ class GuiExt extends Gui
 
     class Control extends Gui.Control
     {
-        static __New(p := this.Prototype, sp?) 
+        static __New(p := this.Prototype, sp?)
         {
             sp := sp ?? super.Prototype
-            for prop in p.OwnProps() 
+            for prop in p.OwnProps()
                 if (!sp.HasMethod(prop) && !InStr(prop, "__")) 
                     sp.DefineProp(prop, p.GetOwnPropDesc(prop))
 
@@ -437,8 +437,8 @@ class GuiExt extends Gui
                         DllCall("RemoveWindowSubclass", "Ptr", hWnd, "Ptr", cb, "Ptr", hWnd)
                         CallbackFree(cb)
                     }
-                        SubClasses.Delete(hwnd)
-                    }
+                    SubClasses.Delete(hwnd)
+                }
                 OnExit(RemoveWindowSubclass, 0)
             }
         }
@@ -693,12 +693,10 @@ class GuiExt extends Gui
     ;;}
 }
 
-;;{ Examples
+;; Examples
 
-; Example_GuiExt()
-Example_SetBorderless()
-
-;;}
+if !A_IsCompiled && A_LineFile = A_ScriptFullPath
+    Example_GuiExt()
 
 Example_GuiExt()
 {
@@ -722,8 +720,40 @@ Example_GuiExt()
     myGui.SetFont("cWhite s16", "Segoe UI")
     myGui.BackColor := 0x202020
     
+    myGui.OnEvent("Size", Size)
+    myGui.OnMessage(WM_MOVING, (*) => myEdit.UpdatePos())
+
+    myGui.OnEvent("Escape", (*) => ExitApp())
+    
+    ; Registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
+    myGui.OnMessage(WM_LBUTTONDOWN, DragWindow)
+
+    ; Set Dark Titlebar
+    myGui.SetDarkTitle()
+
+    ; Set Dark ContextMenu
+    myGui.SetDarkMenu()
+    
+    if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
+    {
+        ; Set Rounded Window (Requires win 11)
+        myGui.SetWindowAttribute(33, 2)
+    
+        ; Remove the window border. (Requires win 11)
+        ; Do not set this if you're creating a borderless window with `SetBorderless` method.
+        ; myGui.SetWindowColor(, , -1)
+    
+        ; Set Mica (Alt) background. (Requires win 11 build 22600)
+        ; [Learn more](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt)
+        if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
+            myGui.SetWindowAttribute(38, 4)
+    }
+    
+    ; Set the borderless 
+    myGui.SetBorderless(6, BorderlessCallback, 500, 500, 500, 500)
+    
     ; Gui Control objects created in this way do not work with VSCode's IntelliSense. Create an Edit control as shown below.
-    text := myGui.AddText("Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Rounded Text Control")
+    text := myGui.Add("Text", "Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Rounded Text Control")
     
     ; Set Rounded Control
     text.SetRounded()
@@ -742,45 +772,19 @@ Example_GuiExt()
         h: " myGui.H
     )))
     
-    myEdit.OnEvent("Focus", (gCtrl, *) => (DllCall("User32\HideCaret", "ptr", gCtrl.hWnd, "int"), gCtrl.SendMsg(EN_KILLFOCUS)))
+    ; Hide the blinking caret 
+    myEdit.OnEvent("Focus", (gCtrl, *) => (DllCall("HideCaret", "ptr", gCtrl.hWnd, "int"), gCtrl.SendMsg(EN_KILLFOCUS)))
     
-    myGui.OnEvent("Size", Size)
-    
-    ; Registers a function or method to be called whenever the Gui or GuiControl receives the specified message. [Check out the official document for more information.](https://www.autohotkey.com/docs/alpha/lib/GuiOnMessage.htm)
-    myGui.OnMessage(WM_LBUTTONDOWN, DragWindow)
     myEdit.OnMessage(WM_SETCURSOR, SetCursor)
-    myGui.OnMessage(WM_MOVING, (*) => myEdit.UpdatePos())
-    
-    ; Set Dark Titlebar
-    myGui.SetDarkTitle()
-    
-    ; Set Dark ContextMenu
-    myGui.SetDarkMenu()
-    
-    if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
-    {
-        ; Set Rounded Window (Requires win 11)
-        myGui.SetWindowAttribute(33, 2)
-    
-        ; Remove the window border. (Requires win 11)
-        myGui.SetWindowColor(, , -1)
-    
-        ; Set Mica (Alt) background. (Requires win 11 build 22600)
-        ; [Learn more](https://learn.microsoft.com/en-us/windows/apps/design/style/mica#app-layering-with-mica-alt)
-        if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
-            myGui.SetWindowAttribute(38, 4)
-    }
-    
-    ; Set the borderless 
-    myGui.SetBorderless(6, BorderlessCallback, 500, 500, 500, 500)
     
     myGui.Show("w300 AutoSize")
     myGui.Opt("MinSize")
 
-    WinRedraw(myGui)
-    
     ; Send Message to the gui or gui control
     myEdit.SendMsg(EN_KILLFOCUS)
+
+    WinRedraw(myGui)
+    WinWaitClose(myGui)
     
     BorderlessCallback(g, x, y) {
         if !g["Edit"]
@@ -835,6 +839,7 @@ Example_GuiExt()
     }
 }
 
+/*
 Example_SetBorderless()
 {
     myGui := GuiExt("-Caption +Resize")
@@ -843,11 +848,15 @@ Example_SetBorderless()
     myGui.SetDarkMenu()
 
     myGui.BackColor := 0x202020
-    text := myGui.Add("Text", "vTitlebar Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Titlebar Area")
+    text            := myGui.AddText("vTitlebar Backgroundcaa2031 cwhite Center R1.5 0x200 w280", "Titlebar Area")
+    
+    text.Base := GuiExt.Control
+
     text.SetRounded()
+
     myGui.OnEvent('Size', Size)
 
-    /* Set Mica (Alt) background. (Supported starting with Windows 11 Build 22000.) */
+    ;Set Mica (Alt) background. (Supported starting with Windows 11 Build 22000.) 
     if (VerCompare(A_OSVersion, "10.0.22600") >= 0)
         myGui.SetWindowAttribute(38, 4)
 
@@ -858,7 +867,7 @@ Example_SetBorderless()
     Size(g, minmax, width, height)
     {
         SetControlDelay(-1)
-        /** Set titlebar's width to fix the gui. */
+        ; Set titlebar's width to fix the gui.
         g["Titlebar"].W := (width - (g.MarginX*2))
     }
 }
