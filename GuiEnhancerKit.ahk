@@ -3,11 +3,11 @@
  * @file GuiEnhancerKit.ahk
  * @author Nikola Perovic
  * @link https://github.com/nperovic/GuiEnhancerKit
- * @date 2024/05/30
- * @version 1.0.3
+ * @date 2024/06/16
+ * @version 1.0.4
  ***********************************************************************/
 
-#Requires AutoHotkey v2.0.15
+#Requires AutoHotkey v2
 
 #DllLoad gdi32.dll
 #DllLoad uxtheme.dll
@@ -229,7 +229,7 @@ class GuiExt extends Gui
             if (T := (y < rc.top + border))
                 return R ? HTTOPRIGHT: L ? HTTOPLEFT: HTTOP
 
-            return L ? HTLEFT: R ? HTRIGHT: (HTFunc && HTFunc(x, y) ? TCAPTION : unset)
+            return L ? HTLEFT: R ? HTRIGHT: (HTFunc && HTFunc(x, y) ? TCAPTION : (_ := unset))
         }
 
         ExtendFrameIntoClientArea(cxLeftWidth?, cxRightWidth?, cyTopHeight?, cyBottomHeight?)
@@ -401,6 +401,7 @@ class GuiExt extends Gui
                 SubClasses[this.hwnd] := CallbackCreate(SubClassProc,, 6)
                 HookedMsgs[this.hwnd] := Map(Msg, Callback.Bind(this))
                 SetWindowSubclass(this, SubClasses[this.hwnd])
+                OnExit(RemoveWindowSubclass)
                 this.Gui.OnEvent("Close", RemoveWindowSubclass)
             }
             
