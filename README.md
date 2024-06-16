@@ -1,6 +1,8 @@
 # GuiEnhancerKit
 Elevate your AHK Gui development with extended methods and properties. This library provides a set of extended methods and properties to enhance your AutoHotkey Gui development experience.
 
+🌍Other Language: [中文](README_zh-tw.md)  
+
 ## Getting Started
 
 ### Including the library in your script
@@ -14,7 +16,7 @@ Elevate your AHK Gui development with extended methods and properties. This libr
 > ![image](https://github.com/nperovic/GuiEnhancerKit/assets/122501303/8decc18c-57e0-47a7-8ee7-ebef7e4845d4)
 
 To ensure proper functioning of VSCode's IntelliSence, you can:
-1. Replace `Gui` object with `GuiExt`. (Recommended)
+1. 替换 `Gui` object with `GuiExt`. (Recommended)
 ```CPP
 myGui := GuiExt("-Caption +Resize")
 ```
