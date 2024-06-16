@@ -4,7 +4,7 @@
  * @author Nikola Perovic
  * @link https://github.com/nperovic/GuiEnhancerKit
  * @date 2024/06/16
- * @version 1.0.4
+ * @version 1.0.0
  ***********************************************************************/
 
 #Requires AutoHotkey v2
